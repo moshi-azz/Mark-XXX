@@ -1,0 +1,10 @@
+# Git ignore for Mark-XXX
+config/api_keys.json
+__pycache__/
+*.pyc
+memory/long_term.json
+.vscode/
+.idea/
+build/
+dist/
+*.exe
