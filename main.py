@@ -31,6 +31,8 @@ from actions.code_helper      import code_helper
 from actions.dev_agent        import dev_agent
 from actions.web_search       import web_search as web_search_action
 from actions.computer_control import computer_control
+from actions.gesture_control  import GestureController
+from actions.game_updater     import game_updater
 
 def get_base_dir():
     if getattr(sys, "frozen", False):
@@ -88,8 +90,11 @@ class JarvisLive:
         self._last_speech_t = 0.0
         self._listen_duration = 10.0 # seconds
 
-        # Set UI callback
+        self._muted = False
+
+        # Set UI callbacks
         self.ui.text_input_callback = self.handle_text_input
+        self.ui.mute_callback       = self._set_muted
 
     def is_wake_word(self, text: str) -> bool:
         """Check if 'Jarvis' or similar is mentioned in the text."""
@@ -128,6 +133,9 @@ class JarvisLive:
                 current_row.append(min(insertions, deletions, substitutions))
             previous_row = current_row
         return previous_row[-1]
+
+    def _set_muted(self, muted: bool):
+        self._muted = muted
 
     def handle_text_input(self, text: str):
         """Handle manual text input from UI."""
@@ -339,6 +347,22 @@ class JarvisLive:
                 )
                 result = r or "Done."
 
+            elif name == "gesture_control":
+                r = await loop.run_in_executor(
+                    None, lambda: GestureController.gesture_control(
+                        parameters=args, player=self.ui
+                    )
+                )
+                result = r or "Done."
+
+            elif name == "game_updater":
+                r = await loop.run_in_executor(
+                    None, lambda: game_updater(
+                        parameters=args, player=self.ui, speak=self.speak
+                    )
+                )
+                result = r or "Done."
+
             else:
                 result = f"Unknown tool: {name}"
             
@@ -384,7 +408,8 @@ class JarvisLive:
                     # For now, we'll assume the receive loop detects the keyword in transcription
                     pass
 
-                await self.out_queue.put({"data": data, "mime_type": "audio/pcm"})
+                if not self._muted:
+                    await self.out_queue.put({"data": data, "mime_type": "audio/pcm"})
         except Exception as e:
             print(f"[JARVIS] [ERR] Mic error: {e}")
             raise

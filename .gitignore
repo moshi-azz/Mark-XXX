@@ -8,3 +8,5 @@ memory/long_term.json
 build/
 dist/
 *.exe
+config/hand_landmarker.task
+.claude/

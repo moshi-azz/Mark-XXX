@@ -264,7 +264,8 @@ TOOL_DECLARATIONS = [
             "'fill a form on a website', 'write and test code'. "
             "DO NOT use for simple computer commands like volume, refresh, close, scroll, "
             "minimize, screenshot, restart, shutdown — use computer_settings for those. "
-            "DO NOT use if the task can be done with a single tool call."
+            "DO NOT use if the task can be done with a single tool call. "
+            "NEVER use for Steam/Epic Games requests — use game_updater instead."
         ),
         "parameters": {
             "type": "OBJECT",
@@ -329,6 +330,51 @@ TOOL_DECLARATIONS = [
                 "save":         {"type": "BOOLEAN", "description": "Save results to Notepad"},
             },
             "required": ["origin", "destination", "date"]
+        }
+    },
+    {
+        "name": "game_updater",
+        "description": (
+            "THE ONLY tool for ANY Steam or Epic Games request. "
+            "Use for: installing, downloading, updating games, listing installed games, "
+            "checking download status, scheduling updates. "
+            "ALWAYS call directly for any Steam/Epic/game request. "
+            "NEVER use agent_task, browser_control, or web_search for Steam/Epic."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action":    {"type": "STRING",  "description": "update | install | list | download_status | schedule | cancel_schedule | schedule_status (default: update)"},
+                "platform":  {"type": "STRING",  "description": "steam | epic | both (default: both)"},
+                "game_name": {"type": "STRING",  "description": "Game name (partial match supported)"},
+                "app_id":    {"type": "STRING",  "description": "Steam AppID for install (optional)"},
+                "hour":      {"type": "INTEGER", "description": "Hour for scheduled update 0-23 (default: 3)"},
+                "minute":    {"type": "INTEGER", "description": "Minute for scheduled update 0-59 (default: 0)"},
+                "shutdown_when_done": {"type": "BOOLEAN", "description": "Shut down PC when download finishes"},
+            },
+            "required": []
+        }
+    },
+    {
+        "name": "gesture_control",
+        "description": (
+            "Controls the computer using hand gestures detected via the webcam. "
+            "Starts or stops gesture-based mouse control. "
+            "Use when the user wants to control their PC with hand movements, "
+            "requests gesture control, wants to use hand gestures, or asks to "
+            "stop gesture control. "
+            "Gestures: point to move cursor, pinch to click, two fingers to scroll, "
+            "open palm for screenshot, hold fist to stop."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {
+                    "type": "STRING",
+                    "description": "start → enables gesture control, stop → disables it"
+                }
+            },
+            "required": ["action"]
         }
     }
 ]

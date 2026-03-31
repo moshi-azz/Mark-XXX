@@ -17,7 +17,7 @@ CONFIG_DIR = BASE_DIR / "config"
 API_FILE   = CONFIG_DIR / "api_keys.json"
 
 SYSTEM_NAME = "J.A.R.V.I.S"
-MODEL_BADGE = "MARK XXX"
+MODEL_BADGE = "MARK XXXV"
 
 C_BG     = "#000000"
 C_PRI    = "#00d4ff"
@@ -35,7 +35,7 @@ C_RED    = "#ff3333"
 class JarvisUI:
     def __init__(self, face_path, size=None):
         self.root = tk.Tk()
-        self.root.title("J.A.R.V.I.S — MARK XXX")
+        self.root.title("J.A.R.V.I.S — MARK XXXV")
         self.root.resizable(False, False)
 
         sw = self.root.winfo_screenwidth()
@@ -69,6 +69,9 @@ class JarvisUI:
 
         self.typing_queue = deque()
         self.is_typing    = False
+
+        self.mute_callback = None
+        self._is_muted     = False
 
         self._face_pil         = None
         self._has_face         = False
@@ -106,9 +109,22 @@ class JarvisUI:
         self.input_entry.pack(side="left", fill="both", expand=True, padx=8)
         self.input_entry.bind("<Return>", self._handle_return)
 
+        self.mute_btn = tk.Button(
+            self.input_frame, text="⏸ MUTE",
+            command=self._toggle_mute,
+            bg="#00080d", fg=C_RED,
+            activebackground="#1a0000", activeforeground="#ff6666",
+            font=("Courier", 8, "bold"), borderwidth=0,
+            padx=8, pady=0, cursor="hand2"
+        )
+        self.mute_btn.pack(side="right", padx=4)
+
         self._api_key_ready = self._api_keys_exist()
         if not self._api_key_ready:
             self._show_setup_ui()
+
+        # F4 shortcut to toggle mute
+        self.root.bind("<F4>", lambda e: self._toggle_mute())
 
         self._animate()
         self.root.protocol("WM_DELETE_WINDOW", lambda: os._exit(0))
@@ -302,7 +318,7 @@ class JarvisUI:
         c.create_rectangle(0, H - 28, W, H, fill="#00080d", outline="")
         c.create_line(0, H - 28, W, H - 28, fill=C_DIM, width=1)
         c.create_text(W // 2, H - 14, fill=C_DIM, font=("Courier", 8),
-                      text="FatihMakes Industries  ·  CLASSIFIED  ·  MARK XXX")
+                      text="FatihMakes Industries  ·  CLASSIFIED  ·  MARK XXXV")
 
     def write_log(self, text: str):
         self.typing_queue.append(text)
@@ -399,3 +415,21 @@ class JarvisUI:
         self._api_key_ready = True
         self.status_text = "ONLINE"
         self.write_log("SYS: Systems initialised. JARVIS online.")
+
+    # ------------------------------------------------------------------
+    # Mute toggle
+    # ------------------------------------------------------------------
+
+    def _toggle_mute(self):
+        self._is_muted = not self._is_muted
+        if self._is_muted:
+            self.mute_btn.config(text="▶ UNMUTE", fg=C_GREEN, bg="#001a00")
+            self.status_text = "MUTED"
+            self.write_log("SYS: Microphone muted. Jarvis is deaf.")
+        else:
+            self.mute_btn.config(text="⏸ MUTE", fg=C_RED, bg="#00080d")
+            self.status_text = "ONLINE"
+            self.write_log("SYS: Microphone active. Jarvis is listening.")
+        if self.mute_callback:
+            self.mute_callback(self._is_muted)
+

@@ -17,3 +17,5 @@ pycaw
 win10toast
 duckduckgo-search
 youtube-transcript-api
+mediapipe>=0.10.0
+pywinauto
